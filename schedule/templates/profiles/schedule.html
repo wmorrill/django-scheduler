@@ -3,9 +3,9 @@
 
 <h2>{% trans "Schedule" %}</h2>
 
-{% get_or_create_calendar other_user other_user.username as calendar %}
+{% get_or_create_room other_user other_user.username as room %}
 
-{% if calendar.event_set.count %}
+{% if room.reservation_set.count %}
 <table>
     <thead>
         <tr>
@@ -16,36 +16,36 @@
         </tr>
     </thead>
     <tbody>
-    {% for event in calendar.event_set.all %}
+    {% for reservation in room.reservation_set.all %}
         <tr>
-            <td>{{ event.start }}</td>
-            <td>{{ event.end }}</td>
-            <td>{{ event.title }}</td>
+            <td>{{ reservation.start }}</td>
+            <td>{{ reservation.end }}</td>
+            <td>{{ reservation.title }}</td>
             <td>
-                {% block schedule_event_controls %}
-                <a href="{% url event event.pk %}" title="{% trans "Event details" %} {{ event }}">
-                    <img src="{{ settings.MEDIA_URL }}icons/time_go.png" alt="{% trans "Event details" %}" />
+                {% block schedule_reservation_controls %}
+                <a href="{% url reservation reservation.pk %}" title="{% trans "Reservation details" %} {{ reservation }}">
+                    <img src="{{ settings.MEDIA_URL }}icons/time_go.png" alt="{% trans "Reservation details" %}" />
                 </a>
                 {% ifequal request.user other_user %}
-                <a href="{% url edit_event calendar.slug event.pk %}" title="{% trans "Edit event" %} {{ event }}">
-                    <img src="{{ settings.MEDIA_URL }}icons/time_edit.png" alt="{% trans "Edit event" %}" />
+                <a href="{% url edit_reservation room.slug reservation.pk %}" title="{% trans "Edit reservation" %} {{ reservation }}">
+                    <img src="{{ settings.MEDIA_URL }}icons/time_edit.png" alt="{% trans "Edit reservation" %}" />
                 </a>
-                <a href="{% url delete_event event.pk %}" title="{% trans "Delete event" %} {{ event }}">
-                    <img src="{{ settings.MEDIA_URL }}icons/time_delete.png" alt="{% trans "Delete event" %}" />
+                <a href="{% url delete_reservation reservation.pk %}" title="{% trans "Delete reservation" %} {{ reservation }}">
+                    <img src="{{ settings.MEDIA_URL }}icons/time_delete.png" alt="{% trans "Delete reservation" %}" />
                 </a>
                 {% endifequal %}
-                {% endblock schedule_event_controls %}
+                {% endblock schedule_reservation_controls %}
             </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
 {% else %}
-    {% url calendar_create_event as add_event_url %}
-    <p>{% blocktrans %}You haven't added any <a href="{{ add_event_url }}">event</a> yet.{% endblocktrans %}</p>
+    {% url room_create_reservation as add_reservation_url %}
+    <p>{% blocktrans %}You haven't added any <a href="{{ add_reservation_url }}">reservation</a> yet.{% endblocktrans %}</p>
 {% endif %}
 
 <p>
-    <a href="{% url calendar_create_event calendar %}">{% block schedule_add_event_link_label %}{% trans "Add event" %}{% endblock %}</a>
+    <a href="{% url room_create_reservation room %}">{% block schedule_add_reservation_link_label %}{% trans "Add reservation" %}{% endblock %}</a>
 </p>
 

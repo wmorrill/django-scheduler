@@ -5,28 +5,28 @@ from django.http import HttpResponseRedirect
 from django.conf import settings
 from schedule.conf.settings import CHECK_PERMISSION_FUNC
 
-class EventListManager(object):
+class ReservationListManager(object):
     """
-    This class is responsible for doing functions on a list of events. It is
-    used to when one has a list of events and wants to access the occurrences
-    from these events in as a group
+    This class is responsible for doing functions on a list of reservations. It is
+    used to when one has a list of reservations and wants to access the occurrences
+    from these reservations in as a group
     """
-    def __init__(self, events):
-        self.events = events
+    def __init__(self, reservations):
+        self.reservations = reservations
 
     def occurrences_after(self, after=None):
         """
         It is often useful to know what the next occurrence is given a list of
-        events.  This function produces a generator that yields the
+        reservations.  This function produces a generator that yields the
         the most recent occurrence after the date ``after`` from any of the
-        events in ``self.events``
+        reservations in ``self.reservations``
         """
         from schedule.models import Occurrence
         if after is None:
             after = datetime.datetime.now()
         occ_replacer = OccurrenceReplacer(
-            Occurrence.objects.filter(event__in = self.events))
-        generators = [event._occurrences_after_generator(after) for event in self.events]
+            Occurrence.objects.filter(reservation__in = self.reservations))
+        generators = [reservation._occurrences_after_generator(after) for reservation in self.reservations]
         occurrences = []
 
         for generator in generators:
@@ -55,7 +55,7 @@ class OccurrenceReplacer(object):
     the generated ones that are equivalent.  This class makes this easier.
     """
     def __init__(self, persisted_occurrences):
-        lookup = [((occ.event_id, occ.original_start, occ.original_end), occ) for
+        lookup = [((occ.reservation_id, occ.original_start, occ.original_end), occ) for
             occ in persisted_occurrences]
         self.lookup = dict(lookup)
 
@@ -65,11 +65,11 @@ class OccurrenceReplacer(object):
         has already been matched
         """
         return self.lookup.pop(
-            (occ.event_id, occ.original_start, occ.original_end),
+            (occ.reservation_id, occ.original_start, occ.original_end),
             occ)
 
     def has_occurrence(self, occ):
-        return (occ.event_id, occ.original_start, occ.original_end) in self.lookup
+        return (occ.reservation_id, occ.original_start, occ.original_end) in self.lookup
 
     def get_additional_occurrences(self, start, end):
         """
@@ -78,16 +78,16 @@ class OccurrenceReplacer(object):
         return [occ for key,occ in self.lookup.items() if (occ.start < end and occ.end >= start and not occ.cancelled)]
 
 
-class check_event_permissions(object):
+class check_reservation_permissions(object):
 
     def __init__(self, f):
         self.f = f
         self.__name__ = f.__name__
-        self.contenttype = ContentType.objects.get(app_label='schedule', model='event')
+        self.contenttype = ContentType.objects.get(app_label='schedule', model='reservation')
 
     def __call__(self, request, *args, **kwargs):
         user = request.user
-        object_id = kwargs.get('event_id', None)
+        object_id = kwargs.get('reservation_id', None)
         try:
             obj = self.contenttype.get_object_for_this_type(pk=object_id)
         except self.contenttype.model_class().DoesNotExist:

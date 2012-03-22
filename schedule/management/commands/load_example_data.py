@@ -7,25 +7,25 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         import datetime
-        from schedule.models import Calendar
+        from schedule.models import Room
         from schedule.models import Event
         from schedule.models import Rule
 
         print "checking for existing data ..."
         try:
-            cal = Calendar.objects.get(name="Example Calendar")
+            cal = Room.objects.get(name="Example Room")
             print "It looks like you already have loaded this sample data, quitting."
             import sys
             sys.exit(1)
-        except Calendar.DoesNotExist:
+        except Room.DoesNotExist:
             print "Sample data not found in db."
             print "Install it..."
 
 
-        print "Create Example Calendar ..."
-        cal = Calendar(name="Example Calendar",slug="example")
+        print "Create Example Room ..."
+        cal = Room(name="Example Room",slug="example")
         cal.save()
-        print "The Example Calendar is created."
+        print "The Example Room is created."
         print "Do we need to install the most common rules?"
         try:
             rule = Rule.objects.get(name="Daily")
@@ -53,7 +53,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 3, 9, 0),
                 'end_recurring_period' : datetime.datetime(2009, 6, 1, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -64,7 +64,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 5, 16, 30),
                 'end_recurring_period' : datetime.datetime(2009, 6, 1, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -75,7 +75,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 7, 9, 30),
                 'end_recurring_period' : datetime.datetime(2009, 6, 1, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -87,7 +87,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 1, 14, 30),
                 'end_recurring_period' : datetime.datetime(2009, 10, 2, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -99,7 +99,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 12, 11, 23, 59),
                 'end_recurring_period' : datetime.datetime(2009, 12, 22, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -110,7 +110,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 12, 25, 23, 59),
                 'end_recurring_period' : datetime.datetime(2010, 12, 31, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()
@@ -120,7 +120,7 @@ class Command(NoArgsCommand):
                 'start': datetime.datetime(2009, 1, 6, 11, 0),
                 'end': datetime.datetime(2009, 1, 6, 12, 00),
                 'end_recurring_period' : datetime.datetime(2009, 1, 7, 0, 0),
-                'calendar': cal
+                'room': cal
                }
         event = Event(**data)
         event.save()

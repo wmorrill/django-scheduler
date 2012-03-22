@@ -82,8 +82,8 @@ div.type2 {
 /**** EVENT DETAIL DIALOG ****/
 
 div.detail tr {vertical-align:top;}
-div.detail td {COLOR: #FFF;}
-div.detail td.left {font-weight:bold;COLOR: #FFF;}
+
+div.detail td.left {font-weight:bold;}
 
 div.event_options div.title {
   float:left;
@@ -121,9 +121,8 @@ table.calendar td {
 }
 
 table.calendar td.daynumber {
-	font-size: 10pt;
-	vertical-align: top;
-	text-align:left;
+	font-size: 8pt;
+	vertical-align: top
 }
 
 table.calendar td.noday {
@@ -261,6 +260,13 @@ div.time-picker li.selected {
 
 /**** GENERAL SETTINGS ****/
 
+#demo {
+  border-color:#e0e0e0;
+  border-style:solid;
+  border-width: 0 3px 3px 0;
+  float:left;
+  padding-right:5px;
+}
 
 body, td {font-family:sans-serif;}
 
@@ -278,11 +284,10 @@ div.calendarname {
   border-style:solid;
   border-width: 0 0px 3px 3px;
   font-weight:bold;
-  font-size:24px;
   padding-left:5px;
   position:absolute;
-  margin:0 auto;
-
+  right:10px;
+  top:10px;
 }
 
 div.navigation {

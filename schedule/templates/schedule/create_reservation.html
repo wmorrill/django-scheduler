@@ -1,8 +1,11 @@
 {% extends "schedule/reservation_form_base.html" %}
 {% load i18n %}
 
+{% block head_title%}{{ room }} - Reserve Room{% endblock %}
+
 {% block body %}
-<b>{% trans "Create or change occurrence. All fields are required." %}</b>
+<h2>{{room}} - Reserve Room</h2>
+<b>{% trans " All fields are required." %}</b>
 <br/><br/>
 <form action="" method="post">
 <table>

@@ -7,28 +7,28 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         import datetime
-        from schedule.models import Calendar
+        from schedule.models import Room
         from schedule.models import Event
         from schedule.models import Rule
 
         print "checking for existing data ..."
         try:
-            cal = Calendar.objects.get(name="yml_cal")
+            cal = Room.objects.get(name="yml_cal")
             print "It looks like you already have loaded the sample data, quitting."
             import sys
             sys.exit(1)
-        except Calendar.DoesNotExist:
+        except Room.DoesNotExist:
             print "Sample data not found in db."
             print "Install it..."
 
 
-        print "Create 2 calendars : tony_cal, yml_cal"
-        yml_cal = Calendar(name="yml_cal",slug="yml")
+        print "Create 2 rooms : tony_cal, yml_cal"
+        yml_cal = Room(name="yml_cal",slug="yml")
         yml_cal.save()
-        print "First calendar is created"
-        tony_cal = Calendar(name="tony_cal",slug="tony")
+        print "First room is created"
+        tony_cal = Room(name="tony_cal",slug="tony")
         tony_cal.save()
-        print "Second calendar is created"
+        print "Second room is created"
         print "Do we need to create the most common rules?"
         try:
             rule = Rule.objects.get(name="Daily")
@@ -55,7 +55,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 1, 9, 0),
                 'end_recurring_period' : datetime.datetime(2010, 5, 5, 0, 0),
                 'rule': rule,
-                'calendar': tony_cal
+                'room': tony_cal
                }
         event = Event(**data)
         event.save()
@@ -66,7 +66,7 @@ class Command(NoArgsCommand):
                 'end': datetime.datetime(2008, 11, 1, 19, 0),
                 'end_recurring_period' : datetime.datetime(2010, 5, 5, 0, 0),
                 'rule': rule,
-                'calendar': tony_cal
+                'room': tony_cal
                }
         event = Event(**data)
         event.save()

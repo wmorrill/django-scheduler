@@ -1,20 +1,20 @@
 from django.db.models.signals import pre_save
 
-from models import Event, Calendar
+from models import Reservation, Room
 
-def optionnal_calendar(sender, **kwargs):
-    event = kwargs.pop('instance')
+def optionnal_room(sender, **kwargs):
+    reservation = kwargs.pop('instance')
         
-    if not isinstance(event, Event):
+    if not isinstance(reservation, Reservation):
         return True
-    if not event.calendar:
+    if not reservation.room:
         try:
-            calendar = Calendar._default_manager.get(name='default')
-        except Calendar.DoesNotExist:
-            calendar = Calendar(name='default', slug='default')
-            calendar.save()
+            room = Room._default_manager.get(name='default')
+        except Room.DoesNotExist:
+            room = Room(name='default', slug='default')
+            room.save()
 
-        event.calendar = calendar
+        reservation.room = room
     return True
 
-pre_save.connect(optionnal_calendar)
+pre_save.connect(optionnal_room)

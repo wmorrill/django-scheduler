@@ -22,7 +22,7 @@ except ValueError:
 SHOW_CANCELLED_OCCURRENCES = getattr(settings, 'SHOW_CANCELLED_OCCURRENCES',
                                      False)
 
-# Callable used to check if a user has edit permissions to event
+# Callable used to check if a user has edit permissions to reservation
 # (and occurrence). Used by check_edit_permission decorator
 # if ob==None we check permission to add occurrence
 CHECK_PERMISSION_FUNC = getattr(settings, 'CHECK_PERMISSION_FUNC', None)
@@ -32,16 +32,16 @@ if not CHECK_PERMISSION_FUNC:
 
     CHECK_PERMISSION_FUNC = check_edit_permission
 
-# Callable used to customize the event list given for a calendar and user
-# (e.g. all events on that calendar, those events plus another calendar's events,
-# or the events filtered based on user permissions)
+# Callable used to customize the reservation list given for a room and user
+# (e.g. all reservations on that room, those reservations plus another room's reservations,
+# or the reservations filtered based on user permissions)
 # Imports have to be placed within the function body to avoid circular imports
 GET_EVENTS_FUNC = getattr(settings, 'GET_EVENTS_FUNC', None)
 if not GET_EVENTS_FUNC:
-    def get_events(request, calendar):
-        return calendar.event_set.all()
+    def get_reservations(request, room):
+        return room.reservation_set.all()
 
-    GET_EVENTS_FUNC = get_events
+    GET_EVENTS_FUNC = get_reservations
 
 # URL to redirect to to after an occurrence is canceled
 OCCURRENCE_CANCEL_REDIRECT = getattr(settings, 'OCCURRENCE_CANCEL_REDIRECT', None)

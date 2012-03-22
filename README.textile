@@ -10,13 +10,18 @@ A calendaring/scheduling application, featuring:
  * view day, week, month, three months and year
  * project sample which can be launched immediately and reused in your project
 
-See see "wiki page":http://wiki.github.com/thauber/django-schedule for more.
+See "wiki page":http://wiki.github.com/bartekgorny/django-schedule/wiki for more
 
 h2. Installation
 
 Download the code; put in into your project's directory or run <pre>python setup.py install</pre> to install system-wide.
 
-REQUIREMENTS: python-vobject (comes with most distribution as a package).
+REQUIREMENTS: 
+
+ * python-vobject
+ * python-dateutil from Labix
+
+(both come with most distributions)
 
 h2. Settings.py
 
@@ -64,4 +69,11 @@ Default:
 <pre>
     get_events(request, calendar):
         return calendar.event_set.all()
+</pre>
+
+h2. urls.py
+
+Add : 
+<pre>
+    (r'^schedule/', include('schedule.urls')),
 </pre>

@@ -1,9 +1,8 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from schedule.models import Event, Occurrence, Rule
+from schedule.models import Reservation, Occurrence, Rule
 import datetime
 import time
-
 
 
 class SpanForm(forms.ModelForm):
@@ -17,22 +16,22 @@ class SpanForm(forms.ModelForm):
         return self.cleaned_data['end']
 
 
-class EventForm(SpanForm):
+class ReservationForm(SpanForm):
     def __init__(self, hour24=False, *args, **kwargs):
-        super(EventForm, self).__init__(*args, **kwargs)
+        super(ReservationForm, self).__init__(*args, **kwargs)
     
-    end_recurring_period = forms.DateTimeField(help_text = _("This date is ignored for one time only events."), required=False)
+    end_recurring_period = forms.DateTimeField(help_text = _("This date is ignored for one time only reservations."), required=False)
     
     class Meta:
-        model = Event
-        exclude = ('creator', 'created_on', 'calendar')
+        model = Reservation
+        exclude = ('creator', 'created_on', 'room')
         
 
 class OccurrenceForm(SpanForm):
     
     class Meta:
         model = Occurrence
-        exclude = ('original_start', 'original_end', 'event', 'cancelled')
+        exclude = ('original_start', 'original_end', 'reservation', 'cancelled')
 
 
 class RuleForm(forms.ModelForm):

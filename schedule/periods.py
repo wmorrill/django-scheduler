@@ -10,12 +10,12 @@ from schedule.utils import OccurrenceReplacer
 weekday_names = []
 weekday_abbrs = []
 if FIRST_DAY_OF_WEEK == 1:
-    # The calendar week starts on Monday
+    # The room week starts on Monday
     for i in range(7):
         weekday_names.append( WEEKDAYS[i] )
         weekday_abbrs.append( WEEKDAYS_ABBR[i] )
 else:
-    # The calendar week starts on Sunday, not Monday
+    # The room week starts on Sunday, not Monday
     weekday_names.append( WEEKDAYS[6] )
     weekday_abbrs.append( WEEKDAYS_ABBR[6] )
     for i in range(6):
@@ -26,22 +26,22 @@ else:
 class Period(object):
     '''
     This class represents a period of time. It can return a set of occurrences
-    based on its events, and its time period (start and end).
+    based on its reservations, and its time period (start and end).
     '''
-    def __init__(self, events, start, end, parent_persisted_occurrences = None,
+    def __init__(self, reservations, start, end, parent_persisted_occurrences = None,
         occurrence_pool=None):
         self.start = start
         self.end = end
-        self.events = events
+        self.reservations = reservations
         self.occurrence_pool = occurrence_pool
         if parent_persisted_occurrences is not None:
             self._persisted_occurrences = parent_persisted_occurrences
 
     def __eq__(self, period):
-        return self.start==period.start and self.end==period.end and self.events==period.events
+        return self.start==period.start and self.end==period.end and self.reservations==period.reservations
 
     def __ne__(self, period):
-        return self.start!=period.start or self.end!=period.end or self.events!=period.events
+        return self.start!=period.start or self.end!=period.end or self.reservations!=period.reservations
 
     def _get_sorted_occurrences(self):
         occurrences = []
@@ -50,9 +50,9 @@ class Period(object):
                 if occurrence.start < self.end and occurrence.end > self.start:
                     occurrences.append(occurrence)
             return occurrences
-        for event in self.events:
-            event_occurrences = event.get_occurrences(self.start, self.end)
-            occurrences += event_occurrences
+        for reservation in self.reservations:
+            reservation_occurrences = reservation.get_occurrences(self.start, self.end)
+            occurrences += reservation_occurrences
         return sorted(occurrences)
 
     def cached_get_sorted_occurrences(self):
@@ -67,7 +67,7 @@ class Period(object):
         if hasattr(self, '_persisted_occurrenes'):
             return self._persisted_occurrences
         else:
-            self._persisted_occurrences = Occurrence.objects.filter(event__in = self.events)
+            self._persisted_occurrences = Occurrence.objects.filter(reservation__in = self.reservations)
             return self._persisted_occurrences
 
     def classify_occurrence(self, occurrence):
@@ -119,14 +119,14 @@ class Period(object):
 
     def get_time_slot(self, start, end ):
         if start >= self.start and end <= self.end:
-            return Period( self.events, start, end,
+            return Period( self.reservations, start, end,
                 parent_persisted_occurrences=self.get_persisted_occurrences(),
                 occurrence_pool=self.occurrences)
         return None
 
     def create_sub_period(self, cls, start=None):
         start = start or self.start
-        return cls(self.events, start, self.get_persisted_occurrences(), self.occurrences)
+        return cls(self.reservations, start, self.get_persisted_occurrences(), self.occurrences)
 
     def get_periods(self, cls):
         period = self.create_sub_period(cls)
@@ -136,22 +136,22 @@ class Period(object):
 
 
 class Year(Period):
-    def __init__(self, events, date=None, parent_persisted_occurrences=None):
+    def __init__(self, reservations, date=None, parent_persisted_occurrences=None):
         if date is None:
             date = datetime.datetime.now()
         start, end = self._get_year_range(date)
-        super(Year, self).__init__(events, start, end, parent_persisted_occurrences)
+        super(Year, self).__init__(reservations, start, end, parent_persisted_occurrences)
 
     def get_months(self):
         return self.get_periods(Month)
 
     def next_year(self):
-        return Year(self.events, self.end)
+        return Year(self.reservations, self.end)
     next = next_year
 
     def prev_year(self):
         start = datetime.datetime(self.start.year-1, self.start.month, self.start.day)
-        return Year(self.events, start)
+        return Year(self.reservations, start)
     prev = prev_year
 
     def _get_year_range(self, year):
@@ -171,12 +171,12 @@ class Month(Period):
     The month period has functions for retrieving the week periods within this period
     and day periods within the date.
     """
-    def __init__(self, events, date=None, parent_persisted_occurrences=None,
+    def __init__(self, reservations, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
             date = datetime.datetime.now()
         start, end = self._get_month_range(date)
-        super(Month, self).__init__(events, start, end,
+        super(Month, self).__init__(reservations, start, end,
             parent_persisted_occurrences, occurrence_pool)
 
     def get_weeks(self):
@@ -193,24 +193,24 @@ class Month(Period):
         return self.create_sub_period(Day, date)
 
     def next_month(self):
-        return Month(self.events, self.end)
+        return Month(self.reservations, self.end)
     next = next_month
 
     def prev_month(self):
         start = (self.start - datetime.timedelta(days=1)).replace(day=1)
-        return Month(self.events, start)
+        return Month(self.reservations, start)
     prev = prev_month
 
     def current_year(self):
-        return Year(self.events, self.start)
+        return Year(self.reservations, self.start)
 
     def prev_year(self):
         start = datetime.datetime.min.replace(year=self.start.year-1)
-        return Year(self.events, start)
+        return Year(self.reservations, start)
 
     def next_year(self):
         start = datetime.datetime.min.replace(year=self.start.year+1)
-        return Year(self.events, start)
+        return Year(self.reservations, start)
 
     def _get_month_range(self, month):
         year = month.year
@@ -236,27 +236,27 @@ class Week(Period):
     """
     The Week period that has functions for retrieving Day periods within it
     """
-    def __init__(self, events, date=None, parent_persisted_occurrences=None,
+    def __init__(self, reservations, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
             date = datetime.datetime.now()
         start, end = self._get_week_range(date)
-        super(Week, self).__init__(events, start, end,
+        super(Week, self).__init__(reservations, start, end,
             parent_persisted_occurrences, occurrence_pool)
 
     def prev_week(self):
-        return Week(self.events, self.start - datetime.timedelta(days=7))
+        return Week(self.reservations, self.start - datetime.timedelta(days=7))
     prev = prev_week
 
     def next_week(self):
-        return Week(self.events, self.end)
+        return Week(self.reservations, self.end)
     next = next_week
 
     def current_month(self):
-        return Month(self.events, self.start)
+        return Month(self.reservations, self.start)
 
     def current_year(self):
-        return Year(self.events, self.start)
+        return Year(self.reservations, self.start)
 
     def get_days(self):
         return self.get_periods(Day)
@@ -290,12 +290,12 @@ class Week(Period):
 
 
 class Day(Period):
-    def __init__(self, events, date=None, parent_persisted_occurrences=None,
+    def __init__(self, reservations, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
             date = datetime.datetime.now()
         start, end = self._get_day_range(date)
-        super(Day, self).__init__(events, start, end,
+        super(Day, self).__init__(reservations, start, end,
             parent_persisted_occurrences, occurrence_pool)
 
     def _get_day_range(self, date):
@@ -313,18 +313,18 @@ class Day(Period):
         }
 
     def prev_day(self):
-        return Day(self.events, self.start - datetime.timedelta(days=1))
+        return Day(self.reservations, self.start - datetime.timedelta(days=1))
     prev = prev_day
 
     def next_day(self):
-        return Day(self.events, self.end)
+        return Day(self.reservations, self.end)
     next = next_day
 
     def current_year(self):
-        return Year(self.events, self.start)
+        return Year(self.reservations, self.start)
 
     def current_month(self):
-        return Month(self.events, self.start)
+        return Month(self.reservations, self.start)
 
     def current_week(self):
-        return Week(self.events, self.start)
+        return Week(self.reservations, self.start)

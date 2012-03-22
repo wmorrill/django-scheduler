@@ -6,9 +6,9 @@ import os
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 
-from schedule.models import Event, Rule, Occurrence, Calendar
+from schedule.models import Reservation, Rule, Occurrence, Room
 from schedule.periods import Period, Month, Day
-from schedule.utils import EventListManager
+from schedule.utils import ReservationListManager
 
 class TestRule(TestCase):
     """
@@ -16,7 +16,7 @@ class TestRule(TestCase):
     """
 
     def setUp(self):
-        cal, created = Calendar.objects.get_or_create(name="MyCal")
+        cal, created = Room.objects.get_or_create(name="MyCal")
         cal.save()
 
     def test_daily(self):
@@ -64,16 +64,16 @@ class TestRule(TestCase):
         self.assertEqual(ocs, exp)
 
     def make_occurrences(self, rule):
-        cal = Calendar.objects.get(name="MyCal")
+        cal = Room.objects.get(name="MyCal")
         recurring_data = {
-                'title': 'Recent Event',
+                'title': 'Recent Reservation',
                 'start': datetime.datetime(2010, 1, 1, 8, 0),
                 'end': datetime.datetime(2010, 1, 1, 9, 0),
                 'end_recurring_period' : datetime.datetime(2010, 2, 1, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
-        recurring_event = Event(**recurring_data)
-        occurrences = recurring_event.get_occurrences(start=datetime.datetime(2010, 1, 1, 0, 0),
+        recurring_reservation = Reservation(**recurring_data)
+        occurrences = recurring_reservation.get_occurrences(start=datetime.datetime(2010, 1, 1, 0, 0),
                                     end=datetime.datetime(2010, 2, 1, 0, 0))
         return [o.start.day for o in occurrences]

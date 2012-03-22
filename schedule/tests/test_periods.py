@@ -6,28 +6,28 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from schedule.conf.settings import FIRST_DAY_OF_WEEK
-from schedule.models import Event, Rule, Occurrence, Calendar
+from schedule.models import Reservation, Rule, Occurrence, Room
 from schedule.periods import Period, Month, Day, Year
-from schedule.utils import EventListManager
+from schedule.utils import ReservationListManager
 
 class TestPeriod(TestCase):
 
     def setUp(self):
         rule = Rule(frequency = "WEEKLY")
         rule.save()
-        cal = Calendar(name="MyCal")
+        cal = Room(name="MyCal")
         cal.save()
         data = {
-                'title': 'Recent Event',
+                'title': 'Recent Reservation',
                 'start': datetime.datetime(2008, 1, 5, 8, 0),
                 'end': datetime.datetime(2008, 1, 5, 9, 0),
                 'end_recurring_period' : datetime.datetime(2008, 5, 5, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
-        recurring_event = Event(**data)
-        recurring_event.save()
-        self.period = Period(events=Event.objects.all(),
+        recurring_reservation = Reservation(**data)
+        recurring_reservation.save()
+        self.period = Period(reservations=Reservation.objects.all(),
                             start = datetime.datetime(2008,1,4,7,0),
                             end = datetime.datetime(2008,1,21,7,0))
 
@@ -67,7 +67,7 @@ class TestPeriod(TestCase):
 class TestYear(TestCase):
 
     def setUp(self):
-        self.year = Year(events=[], date=datetime.datetime(2008,4,1))
+        self.year = Year(reservations=[], date=datetime.datetime(2008,4,1))
 
     def test_get_months(self):
         months = self.year.get_months()
@@ -80,19 +80,19 @@ class TestMonth(TestCase):
     def setUp(self):
         rule = Rule(frequency = "WEEKLY")
         rule.save()
-        cal = Calendar(name="MyCal")
+        cal = Room(name="MyCal")
         cal.save()
         data = {
-                'title': 'Recent Event',
+                'title': 'Recent Reservation',
                 'start': datetime.datetime(2008, 1, 5, 8, 0),
                 'end': datetime.datetime(2008, 1, 5, 9, 0),
                 'end_recurring_period' : datetime.datetime(2008, 5, 5, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
-        recurring_event = Event(**data)
-        recurring_event.save()
-        self.month = Month(events=Event.objects.all(),
+        recurring_reservation = Reservation(**data)
+        recurring_reservation.save()
+        self.month = Month(reservations=Reservation.objects.all(),
                            date=datetime.datetime(2008, 2, 7, 9, 0))
 
     def test_get_weeks(self):
@@ -185,7 +185,7 @@ class TestMonth(TestCase):
 
 class TestDay(TestCase):
     def setUp(self):
-        self.day = Day(events=Event.objects.all(),
+        self.day = Day(reservations=Reservation.objects.all(),
                            date=datetime.datetime(2008, 2, 7, 9, 0))
 
     def test_day_setup(self):
@@ -209,18 +209,18 @@ class TestOccurrencePool(TestCase):
     def setUp(self):
         rule = Rule(frequency = "WEEKLY")
         rule.save()
-        cal = Calendar(name="MyCal")
+        cal = Room(name="MyCal")
         cal.save()
         data = {
-                'title': 'Recent Event',
+                'title': 'Recent Reservation',
                 'start': datetime.datetime(2008, 1, 5, 8, 0),
                 'end': datetime.datetime(2008, 1, 5, 9, 0),
                 'end_recurring_period' : datetime.datetime(2008, 5, 5, 0, 0),
                 'rule': rule,
-                'calendar': cal
+                'room': cal
                }
-        self.recurring_event = Event(**data)
-        self.recurring_event.save()
+        self.recurring_reservation = Reservation(**data)
+        self.recurring_reservation.save()
 
     def testPeriodFromPool(self):
         """
@@ -229,7 +229,7 @@ class TestOccurrencePool(TestCase):
         """
         start = datetime.datetime(2008, 1, 5, 9, 0)
         end = datetime.datetime(2008, 1, 5, 10, 0)
-        parent_period = Period(Event.objects.all(), start, end)
-        period = Period(parent_period.events, start, end, parent_period.get_persisted_occurrences(), parent_period.occurrences)
+        parent_period = Period(Reservation.objects.all(), start, end)
+        period = Period(parent_period.reservations, start, end, parent_period.get_persisted_occurrences(), parent_period.occurrences)
         self.assertEquals(parent_period.occurrences, period.occurrences)
 

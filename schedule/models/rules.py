@@ -15,7 +15,7 @@ freqs = ( ("YEARLY", _("Yearly")),
 
 class Rule(models.Model):
     """
-    This defines a rule by which an event will recur. This is defined by the
+    This defines a rule by which an reservation will recur. This is defined by the
     rrule in the dateutil documentation.
 
     * name - the human friendly name of this kind of recursion.

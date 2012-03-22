@@ -138,7 +138,7 @@ msgid "slug"
 msgstr ""
 
 #: models.py:498 models.py:499 models.py:589
-msgid "calendar"
+msgid "room"
 msgstr ""
 
 #: models.py:593 models.py:758
@@ -150,11 +150,11 @@ msgid "inheritable"
 msgstr ""
 
 #: models.py:599
-msgid "calendar relation"
+msgid "room relation"
 msgstr ""
 
 #: models.py:600
-msgid "calendar relations"
+msgid "room relations"
 msgstr ""
 
 #: models.py:763

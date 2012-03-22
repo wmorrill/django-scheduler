@@ -45,41 +45,41 @@ c = Client()
 class TestUrls(TestCase):
 
     fixtures = ['schedule.json']
-    highest_event_id = 7
+    highest_reservation_id = 7
 
-    def test_calendar_view(self):
+    def test_room_view(self):
         self.response = c.get(
-            reverse("year_calendar", kwargs={"calendar_slug":'example'}), {})
+            reverse("year_room", kwargs={"room_slug":'example'}), {})
         self.assertEqual(self.response.status_code, 200)
-        self.assertEqual(self.response.context[0]["calendar"].name,
-                         "Example Calendar")
+        self.assertEqual(self.response.context[0]["room"].name,
+                         "Example Room")
 
-    def test_calendar_month_view(self):
-        self.response = c.get(reverse("month_calendar",
-                                      kwargs={"calendar_slug":'example'}),
+    def test_room_month_view(self):
+        self.response = c.get(reverse("month_room",
+                                      kwargs={"room_slug":'example'}),
                               {'year': 2000, 'month': 11})
         self.assertEqual(self.response.status_code, 200)
-        self.assertEqual(self.response.context[0]["calendar"].name,
-                         "Example Calendar")
+        self.assertEqual(self.response.context[0]["room"].name,
+                         "Example Room")
         month = self.response.context[0]["periods"]['month']
         self.assertEqual((month.start, month.end),
                          (datetime.datetime(2000, 11, 1, 0, 0), datetime.datetime(2000, 12, 1, 0, 0)))
 
-    def test_event_creation_anonymous_user(self):
-        self.response = c.get(reverse("calendar_create_event",
-                                      kwargs={"calendar_slug":'example'}),
+    def test_reservation_creation_anonymous_user(self):
+        self.response = c.get(reverse("room_create_reservation",
+                                      kwargs={"room_slug":'example'}),
                               {})
         self.assertEqual(self.response.status_code, 302)
 
-    def test_event_creation_authenticated_user(self):
+    def test_reservation_creation_authenticated_user(self):
         c.login(username="admin", password="admin")
-        self.response = c.get(reverse("calendar_create_event",
-                                      kwargs={"calendar_slug":'example'}),
+        self.response = c.get(reverse("room_create_reservation",
+                                      kwargs={"room_slug":'example'}),
                               {})
         self.assertEqual(self.response.status_code, 200)
 
-        self.response = c.post(reverse("calendar_create_event",
-                                      kwargs={"calendar_slug":'example'}),
+        self.response = c.post(reverse("room_create_reservation",
+                                      kwargs={"room_slug":'example'}),
                                {'description': 'description',
                                 'title': 'title',
                                 'end_recurring_period_1': '10:22:00','end_recurring_period_0': '2008-10-30', 'end_recurring_period_2': 'AM',
@@ -88,35 +88,35 @@ class TestUrls(TestCase):
                                })
         self.assertEqual(self.response.status_code, 302)
 
-        highest_event_id = self.highest_event_id
-        highest_event_id += 1
-        self.response = c.get(reverse("event",
-                                      kwargs={"event_id":highest_event_id}), {})
+        highest_reservation_id = self.highest_reservation_id
+        highest_reservation_id += 1
+        self.response = c.get(reverse("reservation",
+                                      kwargs={"reservation_id":highest_reservation_id}), {})
         self.assertEqual(self.response.status_code, 200)
         c.logout()
 
-    def test_view_event(self):
-        self.response = c.get(reverse("event",kwargs={"event_id":1}), {})
+    def test_view_reservation(self):
+        self.response = c.get(reverse("reservation",kwargs={"reservation_id":1}), {})
         self.assertEqual(self.response.status_code, 200)
 
-    def test_delete_event_anonymous_user(self):
+    def test_delete_reservation_anonymous_user(self):
         # Only logged-in users should be able to delete, so we're redirected
-        self.response = c.get(reverse("delete_event",kwargs={"event_id":1}), {})
+        self.response = c.get(reverse("delete_reservation",kwargs={"reservation_id":1}), {})
         self.assertEqual(self.response.status_code, 302)
 
-    def test_delete_event_authenticated_user(self):
+    def test_delete_reservation_authenticated_user(self):
         c.login(username="admin", password="admin")
 
         # Load the deletion page
-        self.response = c.get(reverse("delete_event",kwargs={"event_id":1}), {})
+        self.response = c.get(reverse("delete_reservation",kwargs={"reservation_id":1}), {})
         self.assertEqual(self.response.status_code, 200)
 
-        # Delete the event
-        self.response = c.post(reverse("delete_event",kwargs={"event_id":1}), {})
+        # Delete the reservation
+        self.response = c.post(reverse("delete_reservation",kwargs={"reservation_id":1}), {})
         self.assertEqual(self.response.status_code, 302)
 
-        # Since the event is now deleted, we get a 404
-        self.response = c.get(reverse("delete_event",kwargs={"event_id":1}), {})
+        # Since the reservation is now deleted, we get a 404
+        self.response = c.get(reverse("delete_reservation",kwargs={"reservation_id":1}), {})
         self.assertEqual(self.response.status_code, 404)
         c.logout()
 
