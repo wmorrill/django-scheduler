@@ -1,4 +1,4 @@
-h1. Django-schedule-roomms
+h1. Django-schedule-rooms
 
 A fork of the original django-schedule
 modified to be used for the DCS - Room Reservation System
