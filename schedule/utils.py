@@ -55,7 +55,7 @@ class OccurrenceReplacer(object):
     the generated ones that are equivalent.  This class makes this easier.
     """
     def __init__(self, persisted_occurrences):
-        lookup = [((occ.event, occ.original_start, occ.original_end), occ) for
+        lookup = [((occ.event_id, occ.original_start, occ.original_end), occ) for
             occ in persisted_occurrences]
         self.lookup = dict(lookup)
 
@@ -65,11 +65,11 @@ class OccurrenceReplacer(object):
         has already been matched
         """
         return self.lookup.pop(
-            (occ.event, occ.original_start, occ.original_end),
+            (occ.event_id, occ.original_start, occ.original_end),
             occ)
 
     def has_occurrence(self, occ):
-        return (occ.event, occ.original_start, occ.original_end) in self.lookup
+        return (occ.event_id, occ.original_start, occ.original_end) in self.lookup
 
     def get_additional_occurrences(self, start, end):
         """
@@ -82,6 +82,7 @@ class check_event_permissions(object):
 
     def __init__(self, f):
         self.f = f
+        self.__name__ = f.__name__
         self.contenttype = ContentType.objects.get(app_label='schedule', model='event')
 
     def __call__(self, request, *args, **kwargs):

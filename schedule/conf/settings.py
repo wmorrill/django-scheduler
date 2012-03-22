@@ -39,7 +39,14 @@ if not CHECK_PERMISSION_FUNC:
 GET_EVENTS_FUNC = getattr(settings, 'GET_EVENTS_FUNC', None)
 if not GET_EVENTS_FUNC:
     def get_events(request, calendar):
-        return calendar.event_set.all()
+		from schedule.models.calendars import Calendar
+		all_cal = calendar.event_set.all()
+		if calendar.name == 'All Rooms':
+			for c in Calendar.objects.all():
+				all_cal = all_cal | c.event_set.all()
+			return all_cal
+		else:
+			return calendar.event_set.all()
 
     GET_EVENTS_FUNC = get_events
 

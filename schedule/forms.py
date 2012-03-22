@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from schedule.models import Event, Occurrence
+from schedule.models import Event, Occurrence, Rule
 import datetime
 import time
 
@@ -32,3 +32,15 @@ class OccurrenceForm(SpanForm):
     class Meta:
         model = Occurrence
         exclude = ('original_start', 'original_end', 'event', 'cancelled')
+
+
+class RuleForm(forms.ModelForm):
+    params = forms.CharField(widget=forms.Textarea, help_text=_("Extra parameters to define this type of recursion. Should follow this format: rruleparam:value;otherparam:value."))
+
+    def clean_params(self):
+        params = self.cleaned_data["params"]
+        try:
+            Rule(params=params).get_params()
+        except (ValueError, SyntaxError):
+            raise forms.ValidationError(_("Params format looks invalid"))
+        return self.cleaned_data["params"]
