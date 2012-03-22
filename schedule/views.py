@@ -1,3 +1,6 @@
+
+
+
 from urllib import quote
 from django.shortcuts import render_to_response, get_object_or_404
 from django.views.generic.create_update import delete_object
@@ -7,13 +10,14 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.generic.create_update import delete_object
-import datetime
+from datetime import datetime
 
 from schedule.conf.settings import GET_EVENTS_FUNC, OCCURRENCE_CANCEL_REDIRECT
 from schedule.forms import EventForm, OccurrenceForm
 from schedule.models import *
 from schedule.periods import weekday_names
 from schedule.utils import check_event_permissions, coerce_date_dict
+
 
 def calendar(request, calendar_slug, template='schedule/calendar.html', extra_context=None):
     """
@@ -171,7 +175,6 @@ def edit_occurrence(request, event_id,
     context.update(extra_context)
     return render_to_response(template_name, context, context_instance=RequestContext(request))
 
-
 @check_event_permissions
 def cancel_occurrence(request, event_id,
     template_name='schedule/cancel_occurrence.html', *args, **kwargs):
@@ -217,7 +220,6 @@ def get_occurrence(event_id, occurrence_id=None, year=None, month=None,
         raise Http404
     return event, occurrence
 
-
 @check_event_permissions
 def create_or_edit_event(request, calendar_slug, event_id=None, next=None,
     template_name='schedule/create_event.html', form_class = EventForm, extra_context=None):
@@ -227,7 +229,7 @@ def create_or_edit_event(request, calendar_slug, event_id=None, next=None,
 
     Template:
         schedule/create_event.html
-
+        
     Context Variables:
 
     form:
@@ -268,6 +270,8 @@ def create_or_edit_event(request, calendar_slug, event_id=None, next=None,
             raise Http404
 
     instance = None
+    conflict = False
+
     if event_id is not None:
         instance = get_object_or_404(Event, id=event_id)
 
@@ -277,14 +281,33 @@ def create_or_edit_event(request, calendar_slug, event_id=None, next=None,
         hour24=True, initial=initial_data)
 
     if form.is_valid():
-        event = form.save(commit=False)
-        if instance is None:
-            event.creator = request.user
-            event.calendar = calendar
-        event.save()
-        next = next or reverse('event', args=[event.id])
-        next = get_next_url(request, next)
-        return HttpResponseRedirect(next)
+        d = form.cleaned_data
+        start_time = d['start']
+        end_time = d['end']
+
+        start_conflict = calendar.event_set.filter(start__gt=start_time, start__lt=end_time).exclude(id=event_id)
+        end_conflict = calendar.event_set.filter(end__gt=start_time, end__lt=end_time).exclude(id=event_id)
+        during_conflict = calendar.event_set.filter(start__lt=start_time, end__gt=end_time).exclude(id=event_id)
+        start_end_conflict = calendar.event_set.filter(start=start_time, end=end_time)
+
+        if(start_conflict or end_conflict or during_conflict or start_end_conflict):
+            conflict = True
+
+        now = datetime.datetime.now()
+        if(start_time < now):
+            return render_to_response('restrict_reserve.html')
+
+        if(conflict):
+            return render_to_response('schedule_conflict.html')
+        else:
+            event = form.save(commit=False)
+            if instance is None:
+                event.creator = request.user
+                event.calendar = calendar
+            event.save()
+            next = next or reverse('event', args=[event.id])
+            next = get_next_url(request, next)
+            return HttpResponseRedirect(next)
 
     next = get_next_url(request, next)
     context = {
@@ -311,14 +334,12 @@ def delete_event(request, event_id, next=None, login_required=True, extra_contex
     next = next or reverse('day_calendar', args=[event.calendar.slug])
     next = get_next_url(request, next)
     extra_context['next'] = next
-    return delete_object(request,
-                         model = Event,
-                         object_id = event_id,
-                         post_delete_redirect = next,
-                         template_name = "schedule/delete_event.html",
-                         extra_context = extra_context,
-                         login_required = login_required
-                        )
+    if event.creator == request.user:
+        return delete_object(request, model = Event, object_id = event_id, post_delete_redirect = next, template_name = "schedule/delete_event.html", extra_context = extra_context, login_required = login_required)
+    elif (request.user.is_staff)
+		return delete_object(request, model = Event, object_id = event_id, post_delete_redirect = next, template_name = "schedule/delete_event.html", extra_context = extra_context, login_required = login_required)
+	else:
+        return render_to_response('cannot_delete.html')
 
 def check_next_url(next):
     """
@@ -329,6 +350,7 @@ def check_next_url(next):
         return None
     return next
 
+
 def get_next_url(request, default):
     next = default
     if OCCURRENCE_CANCEL_REDIRECT:
@@ -336,3 +358,61 @@ def get_next_url(request, default):
     if 'next' in request.REQUEST and check_next_url(request.REQUEST['next']) is not None:
         next = request.REQUEST['next']
     return next
+	
+@login_required
+def search_form_date(request):
+	return render_to_response('search_form_date.html')
+
+@login_required
+def search_by_date(request):
+    errors = []
+    if 'q' in request.GET:
+        q = request.GET['q']
+        if not q:
+            errors.append('Enter date in year-month-date format.')
+        elif len(q) > 10:
+            errors.append('Please enter at most 10 characters.')
+        else:
+            events = Event.objects.filter(start__icontains=q)
+            return render_to_response('search_results_date.html',
+                {'events': events, 'query': q})
+    return render_to_response('search_form_date.html',
+        {'errors': errors})
+		
+@login_required
+def search_form_room(request):
+    return render_to_response('search_form_room.html')
+
+@login_required
+def search_by_room(request):
+	errors = []
+	if 'q' in request.GET:
+		q = request.GET['q']
+		if not q:
+			errors.append('Enter a room name.')
+		elif len(q) > 20:
+			errors.append('Please enter at most 20 characters.')
+		else:
+			rooms = Event.objects.filter(calendar__name__icontains=q).filter(start__gte=datetime.datetime.now)
+			return render_to_response('search_results_room.html',
+				{'rooms': rooms, 'query': q})
+	return render_to_response('search_form_room.html',
+		{'errors': errors})
+
+@login_required
+def my_reservations(request):
+	reservations = Event.objects.filter(creator=request.user).filter(start__gte=datetime.datetime.now)
+	return render_to_response('my_reservations.html',
+		{'reservations': reservations})
+		
+@login_required
+def all_reservations(request):
+	reservations = Event.objects.filter(start__gte=datetime.datetime.now).order_by('calendar__name')
+	return render_to_response('all_reservations.html',
+		{'reservations': reservations})
+		
+@login_required
+def reserve_rooms(request):
+	rooms = Calendar.objects.all()
+	return render_to_response('reserve_rooms.html',
+		{'rooms': rooms})
