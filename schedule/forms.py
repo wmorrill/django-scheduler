@@ -5,6 +5,7 @@ import datetime
 import time
 
 
+
 class SpanForm(forms.ModelForm):
 
     start = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
