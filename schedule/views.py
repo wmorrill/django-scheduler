@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.generic.create_update import delete_object
-from datetime import datetime
+import datetime
 
 from schedule.conf.settings import GET_EVENTS_FUNC, OCCURRENCE_CANCEL_REDIRECT
 from schedule.forms import EventForm, OccurrenceForm
@@ -15,11 +15,9 @@ from schedule.models import *
 from schedule.periods import weekday_names
 from schedule.utils import check_event_permissions, coerce_date_dict
 
-
 def calendar(request, calendar_slug, template='schedule/calendar.html', extra_context=None):
     """
-    This view returns a calendar
-.  This view should be used if you are
+    This view returns a calendar.  This view should be used if you are
     interested in the meta data of a calendar, not if you want to display a
     calendar.  It is suggested that you use calendar_by_periods if you would
     like to display a calendar.
@@ -173,6 +171,7 @@ def edit_occurrence(request, event_id,
     context.update(extra_context)
     return render_to_response(template_name, context, context_instance=RequestContext(request))
 
+
 @check_event_permissions
 def cancel_occurrence(request, event_id,
     template_name='schedule/cancel_occurrence.html', *args, **kwargs):
@@ -312,10 +311,14 @@ def delete_event(request, event_id, next=None, login_required=True, extra_contex
     next = next or reverse('day_calendar', args=[event.calendar.slug])
     next = get_next_url(request, next)
     extra_context['next'] = next
-    if event.creator == request.user:
-        return delete_object(request, model = Event, object_id = event_id, post_delete_redirect = next, template_name = "schedule/delete_event.html", extra_context = extra_context, login_required = login_required)
-    else:
-        return render_to_response('cannot_delete.html')
+    return delete_object(request,
+                         model = Event,
+                         object_id = event_id,
+                         post_delete_redirect = next,
+                         template_name = "schedule/delete_event.html",
+                         extra_context = extra_context,
+                         login_required = login_required
+                        )
 
 def check_next_url(next):
     """
@@ -325,7 +328,6 @@ def check_next_url(next):
     if not next or '://' in next:
         return None
     return next
-
 
 def get_next_url(request, default):
     next = default
