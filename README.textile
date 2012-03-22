@@ -1,3 +1,10 @@
+h1. Django-schedule-roomms
+
+A fork of the original django-schedule
+modified to be used for the DCS - Room Reservation System
+All instances of calendar and event are replace with room and reservation respectively.
+
+
 h1. Django-schedule
 
 A calendaring/scheduling application, featuring:
