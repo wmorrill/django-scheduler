@@ -1,0 +1,1 @@
+web: python project_sample\manage.py runserver 0.0.0.0:5000
